@@ -31,7 +31,7 @@ app.post("/generate", async (req, res) => {
         console.log("Incoming Request:", req.body);
 
         const model = genAI.getGenerativeModel({
-            model: "gemini-3.6-flash"
+            model: "gemini-2.5-flash"
         });
 
         const prompt = `
