@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PromptForge AI</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: #080808;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 40px 20px;
+    }
+
+    .bg {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      overflow: hidden;
+    }
+
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(120px);
+    }
+
+    .orb1 {
+      width: 350px;
+      height: 350px;
+      background: #6d28d9;
+      top: -100px;
+      left: -100px;
+    }
+
+    .orb2 {
+      width: 350px;
+      height: 350px;
+      background: #2563eb;
+      right: -100px;
+      bottom: -100px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1200px;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(20px);
+      border-radius: 24px;
+      padding: 32px;
+      box-shadow: 0 20px 80px rgba(0, 0, 0, .4);
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .header h1 {
+      font-size: 3rem;
+      font-weight: 800;
+    }
+
+    .header p {
+      color: #aaa;
+      margin-top: 10px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .input-group {
+      margin-bottom: 18px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #ddd;
+    }
+
+    textarea,
+    select {
+      width: 100%;
+      padding: 14px;
+      background: #111;
+      border: 1px solid #222;
+      border-radius: 14px;
+      color: white;
+      resize: none;
+    }
+
+    textarea {
+      min-height: 130px;
+    }
+
+    button {
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      font-weight: 700;
+      background: linear-gradient(135deg, #7c3aed, #2563eb);
+      color: white;
+      transition: .3s;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+    }
+
+    .output {
+      background: #0f0f0f;
+      border-radius: 16px;
+      padding: 20px;
+      min-height: 420px;
+      white-space: pre-wrap;
+      overflow: auto;
+      border: 1px solid #222;
+    }
+
+    .copy-btn {
+      margin-top: 15px;
+    }
+
+    @media(max-width:900px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .header h1 {
+        font-size: 2rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="bg">
+    <div class="orb orb1"></div>
+    <div class="orb orb2"></div>
+  </div>
+
+  <div class="container">
+
+    <div class="header">
+      <h1>PromptForge AI</h1>
+      <p>Turn raw thoughts into expert-level prompts.</p>
+    </div>
+
+    <div class="card">
+
+      <div class="grid">
+
+        <div>
+
+          <div class="input-group">
+            <label>Context</label>
+            <textarea id="context"></textarea>
+          </div>
+
+          <div class="input-group">
+            <label>Goal</label>
+            <textarea id="goal"></textarea>
+          </div>
+
+          <div class="input-group">
+            <label>Prompt Type</label>
+
+            <select id="type">
+              <option>Role Based</option>
+              <option>Step By Step</option>
+              <option>Mentor</option>
+              <option>Expert</option>
+            </select>
+          </div>
+
+          <button onclick="generatePrompt()">
+            Generate Prompt
+          </button>
+
+        </div>
+
+        <div>
+
+          <div class="output" id="result">
+            Your generated prompt will appear here...
+          </div>
+
+          <button class="copy-btn" onclick="copyPrompt()">
+            Copy Prompt
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    async function generatePrompt() {
+      const context = document.getElementById("context").value;
+      const goal = document.getElementById("goal").value;
+      const type = document.getElementById("type").value;
+      const result = document.getElementById("result");
+
+      result.innerText = "Generating...";
+
+      try {
+        const res = await fetch("http://localhost:5000/generate", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            context,
+            goal,
+            type
+          })
+        });
+
+        const data = await res.json();
+
+        console.log("Response:", data);
+
+        if (data.success) {
+          result.innerText = data.prompt;
+        } else {
+          result.innerText = "Error: " + data.error;
+        }
+
+      } catch (err) {
+        console.error(err);
+        result.innerText = "Frontend Error: " + err.message;
+      }
+    }
+
+    function copyPrompt() {
+      navigator.clipboard.writeText(
+        document.getElementById("result").innerText
+      );
+    }
+  </script>
+
+</body>
+
+</html>
