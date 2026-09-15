@@ -31,7 +31,7 @@ app.post("/generate", async (req, res) => {
         console.log("Incoming Request:", req.body);
 
         const model = genAI.getGenerativeModel({
-            model: "gemini-2.5-flash"
+            model: "gemini-3.6-flash"
         });
 
         const prompt = `
@@ -62,14 +62,21 @@ Create a detailed, professional AI prompt.
         });
 
     } catch (error) {
-        console.error("ERROR:");
-        console.error(error);
+  console.error("GEMINI ERROR:");
+  console.error(error);
 
-        return res.status(500).json({
-            success: false,
-            error: error.message
-        });
-    }
+  if (error.message && error.message.includes("503")) {
+    return res.status(503).json({
+      success: false,
+      error: "Gemini is busy right now. Please try again in a few seconds.",
+    });
+  }
+
+  res.status(500).json({
+    success: false,
+    error: error.message || "Something went wrong",
+  });
+}
 });
 
 const PORT = 5000;
